@@ -1,0 +1,14 @@
+const fs = require('fs');
+const pyPath = 'C:/Users/liujiarui/claude-code-strongest/docs/merge_beginner_into_tex.py';
+const texPath = 'C:/Users/liujiarui/claude-code-strongest/docs/claude-code-codex-strongest-guide.tex';
+const py = fs.readFileSync(pyPath, 'utf8');
+const m = py.match(/chapter5 = r'''([\s\S]*?)'''/);
+if (!m) throw new Error('chapter5 block not found');
+const chapter5 = m[1];
+let tex = fs.readFileSync(texPath, 'utf8');
+const start = tex.indexOf('\\chapter{Claude Code 配置}');
+const end = tex.indexOf('\\chapter{Codex 配置}');
+if (start < 0 || end < 0 || end <= start) throw new Error(`chapter boundaries not found start=${start} end=${end}`);
+tex = tex.slice(0, start) + chapter5 + '\n' + tex.slice(end);
+fs.writeFileSync(texPath, tex, 'utf8');
+console.log('updated', texPath, 'chapter5Length', chapter5.length);

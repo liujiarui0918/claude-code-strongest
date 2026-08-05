@@ -1,0 +1,28 @@
+{
+  "repos": [
+    {
+      "owner": "anthropics",
+      "name": "skills",
+      "branch": "main",
+      "enabled": 1
+    },
+    {
+      "owner": "ComposioHQ",
+      "name": "awesome-claude-skills",
+      "branch": "master",
+      "enabled": 1
+    },
+    {
+      "owner": "cexll",
+      "name": "myclaude",
+      "branch": "master",
+      "enabled": 1
+    },
+    {
+      "owner": "JimLiu",
+      "name": "baoyu-skills",
+      "branch": "main",
+      "enabled": 1
+    }
+  ]
+}

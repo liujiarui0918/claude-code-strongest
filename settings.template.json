@@ -4,12 +4,41 @@
     "ANTHROPIC_BASE_URL": "{{ANTHROPIC_BASE_URL}}",
     "ANTHROPIC_MODEL": "{{ANTHROPIC_MODEL}}",
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "{{ANTHROPIC_DEFAULT_HAIKU_MODEL}}",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "ENABLE_TOOL_SEARCH": "true",
     "EDITOR": "code --wait",
     "CLAUDE_HOOKS_LOG_DIR": "{{CLAUDE_HOME}}/logs",
     "CLAUDE_DISABLED_HOOKS": ""
   },
   "theme": "dark",
+  "effortLevel": "max",
   "skipDangerousModePermissionPrompt": true,
+  "extraKnownMarketplaces": {
+    "anthropics": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
+    },
+    "superpowers": {
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers-marketplace"
+      }
+    },
+    "voltagent": {
+      "source": {
+        "source": "github",
+        "repo": "VoltAgent/awesome-claude-code-subagents"
+      }
+    },
+    "wshobson": {
+      "source": {
+        "source": "github",
+        "repo": "wshobson/agents"
+      }
+    }
+  },
   "statusLine": {
     "type": "command",
     "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/statusline.ps1",

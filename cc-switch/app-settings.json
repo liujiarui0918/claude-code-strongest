@@ -1,0 +1,20 @@
+{
+  "showInTray": true,
+  "minimizeToTrayOnClose": true,
+  "useAppWindowControls": false,
+  "enableClaudePluginIntegration": false,
+  "skipClaudeOnboarding": false,
+  "launchOnStartup": false,
+  "silentStartup": false,
+  "enableLocalProxy": true,
+  "proxyConfirmed": true,
+  "enableFailoverToggle": false,
+  "showProfileSwitcher": true,
+  "preserveCodexOfficialAuthOnSwitch": false,
+  "unifyCodexSessionHistory": false,
+  "firstRunNoticeConfirmed": true,
+  "commonConfigConfirmed": true,
+  "language": "zh",
+  "skillSyncMethod": "auto",
+  "skillStorageLocation": "cc_switch"
+}

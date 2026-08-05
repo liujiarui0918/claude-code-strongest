@@ -91,8 +91,53 @@ curl -fsSL https://raw.githubusercontent.com/liujiarui0918/claude-code-codex-str
 - `~/.claude/`：skills / agents / commands / hooks / docs / output-styles 全套
 - `~/.claude/settings.json`：自动生成（hook 路径等填好，UTF-8 无 BOM；API key/URL 默认交给 cc-switch 配，除非用 `--token` 预填）
 - `~/.claude.json`：写入 8 个 MCP 服务器（Windows 用 `cmd /c` 包装，macOS 直连）
-- `~/.codex/`：部署 **Claude Code Codex Strongest / claude-code-codex-strongest** 安全模板（`AGENTS.md` / `config.toml` / `.gitignore`），不复制 `auth.json`；装完运行 `codex login`
+- `~/.codex/`：部署 Codex 侧全套配置 —— `AGENTS.md` / `config.toml` / `.gitignore` + **22 个 agents（.toml）/ 25 个 commands / 4 个 Codex hooks / 4 份 docs**，与 Claude 侧一一对应；不复制 `auth.json`，装完运行 `codex login`
+- **cc-switch 数据库**：providers、common config、8 个 MCP、4 个 skill 仓库全部导入（见下节）
 - 已存在的配置自动备份到 `.bak.<时间戳>`
+
+### cc-switch 配置同步
+
+`cc-switch` 自己把 provider、共享 settings 骨架、MCP、skill 仓库存在 SQLite 里（`~/.cc-switch/cc-switch.db`），**里面有真实 API key，所以数据库本身永远不进仓库**。仓库里放的是脱敏后的模板（`cc-switch/`），安装器自动导入：
+
+| 文件 | 内容 |
+|------|------|
+| `cc-switch/common-config.claude.json` | cc-switch 每次切 provider 时合并进 `~/.claude/settings.json` 的骨架（hooks / statusline / 模型路由 / marketplaces） |
+| `cc-switch/providers.template.json` | provider 列表，API key 全部替换成 `{{占位符}}` |
+| `cc-switch/mcp-servers.json` | cc-switch 自己的 MCP 注册表 |
+| `cc-switch/skill-repos.json` | skill 市场仓库 |
+| `cc-switch/app-settings.json` | 应用偏好（语言、托盘、代理开关等） |
+
+导入是**幂等**的：按 `(name, app_type)` 匹配，已存在的 provider **不会覆盖你已经填好的 key**，也不会删任何东西；写之前先备份数据库到 `~/.cc-switch/backups/`。
+
+```powershell
+# 装完之后单独重跑导入（Windows）
+node install\import-cc-switch.js
+
+# 直接带上 key 一起导入（key 只写进本机数据库，不进仓库）
+node install\import-cc-switch.js --secrets my-keys.json
+
+# 先看会改什么，不写盘
+node install\import-cc-switch.js --dry-run
+```
+
+`my-keys.json` 长这样，占位符名字看 `providers.template.json` 里的 `placeholders` 字段：
+
+```json
+{ "DEEPKEY_CLAUDE_ANTHROPIC_AUTH_TOKEN": "sk-...", "A6API_ANTHROPIC_AUTH_TOKEN": "sk-..." }
+```
+
+不给 `--secrets` 也行：provider 会以空 key 导入，打开 cc-switch 手动粘 key 即可（安装器最后会自动打开它）。用 `-NoCcSwitchImport` / `--no-cc-switch-import` 可跳过导入。
+
+> **要求 Node 22+**（导入用内置 `node:sqlite`）。版本不够会跳过导入并提示，不影响其余安装步骤。
+> 导入前请**退出 cc-switch**（含托盘图标）——它在内存里缓存状态，退出时会把你的改动覆盖掉。脚本会检测到并拦住。
+
+**反过来，把本机的 cc-switch 配置导出成模板**（改完配置后同步回仓库）：
+
+```powershell
+node tools\export-cc-switch.js
+```
+
+导出时会自动脱敏：所有 key 换成占位符，指向内网中转站的 provider 直接剔除（`--include-internal` 可保留），最后再扫一遍确认没有 `sk-` 残留才算成功。
 
 ### 功能预览
 
@@ -197,6 +242,31 @@ Claude Code Codex Strongest 不会复制 Claude 登录态、token、sessions、l
 ├── hooks/                 # PowerShell hook（12 个注册 + 若干工具脚本）
 └── output-styles/         # 5 个输出风格
 ~/.claude.json            # 8 个 MCP 服务器（安装器写入）
+
+~/.codex/                  # Codex 侧，与 Claude 侧对应
+├── AGENTS.md              # 等同 CLAUDE.md 的全局规则
+├── config.toml            # 不含凭证，装完 codex login
+├── agents/                # 22 个 .toml 子 agent
+├── commands/              # 25 个 slash command
+├── hooks/                 # 4 个 Codex hook
+└── docs/                  # 与 Claude 侧共用的 4 份文档
+
+~/.cc-switch/             # cc-switch 自己的数据（不进仓库）
+├── cc-switch.db           # provider + key + MCP + skill 仓库（含明文 key！）
+└── settings.json          # 应用偏好
+```
+
+仓库侧对应的模板：
+
+```
+claude-code-strongest/
+├── cc-switch/            # 脱敏后的 cc-switch 模板（安装器导入）
+├── install/
+│   ├── install-windows.ps1
+│   ├── install-macos.sh
+│   └── import-cc-switch.js   # 模板 -> 本机 cc-switch 数据库
+└── tools/
+    └── export-cc-switch.js   # 本机 cc-switch 数据库 -> 脱敏模板
 ```
 
 ### 卸载
@@ -287,12 +357,36 @@ A normal re-install (without `-Reset`) is also safe: it auto-backs-up existing c
 - **VS Code** + Windows VS Code desktop shortcut + official **Claude Code extension** (`anthropic.claude-code`) + official **Codex / ChatGPT extension** (`openai.chatgpt`) + Chinese language pack (`MS-CEINTL.vscode-language-pack-zh-hans`) + Office document preview (`cweijan.vscode-office`)
 - **Claude Code CLI** (`claude` on PATH)
 - **Codex CLI** (`@openai/codex`; run `codex login`, then `codex`)
-- **Claude Code Codex Strongest / claude-code-codex-strongest config** deployed to `~/.codex/` without auth/runtime files
+- **Claude Code Codex Strongest / claude-code-codex-strongest config** deployed to `~/.codex/` without auth/runtime files — including **22 agents (.toml), 25 commands, 4 Codex hooks and 4 docs**, mirroring the Claude side
 - **33 skills** auto-triggered on intent ("debug this" → `systematic-debugging`)
 - **22 specialized subagents** for parallel research, review, planning, etc.
 - **25 slash commands** (`/plan`, `/tdd`, `/review`, `/debug`, `/verify`, ...)
 - **12 lifecycle hooks** (block-dangerous incl. `git --no-verify`, protect-secrets, protect-linter-configs, auto-format, smart-context, ...)
 - **8 MCP servers** (sequential-thinking, context7, deepwiki, playwright, memory, fetch, time, git-mcp) — written into `~/.claude.json`
+- **cc-switch config** seeded from sanitized templates in `cc-switch/` — providers, the shared settings skeleton, MCP registry and skill repos
+
+### cc-switch config sync
+
+cc-switch stores providers, the shared settings skeleton, its MCP registry and skill repos in SQLite (`~/.cc-switch/cc-switch.db`). That database holds **live API keys, so it is never committed** — the repo carries sanitized templates under `cc-switch/` instead, and the installers import them.
+
+The import is idempotent: providers are matched on `(name, app_type)`, an existing provider **keeps the API key you already entered**, nothing is ever deleted, and the database is backed up to `~/.cc-switch/backups/` before the first write.
+
+```bash
+node install/import-cc-switch.js                      # import (empty keys)
+node install/import-cc-switch.js --secrets keys.json  # import with real keys
+node install/import-cc-switch.js --dry-run            # show changes, write nothing
+node tools/export-cc-switch.js                        # local DB -> sanitized templates
+```
+
+`keys.json` maps the placeholders listed in `cc-switch/providers.template.json`:
+
+```json
+{ "DEEPKEY_CLAUDE_ANTHROPIC_AUTH_TOKEN": "sk-..." }
+```
+
+Without `--secrets`, providers import with blank keys — paste them into the cc-switch GUI, which the installer opens at the end. Requires **Node 22+** (uses the built-in `node:sqlite`); older runtimes skip the import with a warning. **Quit cc-switch first** (tray icon included) — it caches state in memory and would overwrite the import on exit; the script detects this and stops.
+
+Exporting redacts every credential, drops providers pointing at intranet relays (keep them with `--include-internal`), and fails loudly if anything resembling an `sk-` key survives.
 
 ### Configuration flags
 
@@ -300,9 +394,12 @@ A normal re-install (without `-Reset`) is also safe: it auto-backs-up existing c
 - `--url` / `-BaseUrl`: optional relay URL (empty = official Anthropic API)
 - `--model` / `-Model`: optional model name; pins `ANTHROPIC_MODEL` + `ANTHROPIC_DEFAULT_HAIKU_MODEL` (e.g. `deepseek-chat`, `gpt-4o`). Empty = Claude Code defaults
 - `--no-cc-switch` / `-NoCcSwitch`: skip [cc-switch](https://github.com/farion1231/cc-switch) (installed by default — a GUI to switch between multiple API providers/models, incl. OpenAI-format relays)
+- `--cc-switch-secrets` / `-CcSwitchSecrets`: JSON file of placeholder → real API key, written only into the local cc-switch database
+- `--no-cc-switch-import` / `-NoCcSwitchImport`: install the cc-switch GUI but do not seed its database from `cc-switch/`
 - `--reset` / `-Reset`: clean reinstall (back up + wipe old state)
 - `--timezone` / `-Timezone`: IANA tz for the `time` MCP (default Asia/Shanghai)
 - `--claude-home` / `-ClaudeHome`: override `~/.claude` location
+- `--codex-home` / `-CodexHome`: override `~/.codex` location
 - `--non-interactive --force` / `-NonInteractive -Force`: silent CI/scripted install
 
 ### License

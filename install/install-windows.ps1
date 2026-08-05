@@ -403,6 +403,43 @@ function Get-Creds {
     }
 }
 
+# Seed cc-switch's own database (providers, common config, MCP servers, skill repos)
+# from the sanitized templates in cc-switch/. Existing API keys are never overwritten.
+function Import-CcSwitchConfig {
+    param([string]$RepoRoot, [string]$ClaudeHome)
+    Write-Step 'Importing cc-switch configuration (providers, common config, MCP servers)'
+
+    $script = Join-Path $RepoRoot 'install\import-cc-switch.js'
+    if (-not (Test-Path $script)) {
+        Write-Warn "cc-switch importer not found ($script); skipping."
+        return
+    }
+    if (-not (Test-Command 'node')) {
+        Write-Warn 'Node.js not on PATH; skipping cc-switch import. Re-run the installer after opening a new terminal.'
+        return
+    }
+
+    # node:sqlite (used by the importer) landed in Node 22. Older runtimes cannot seed the DB.
+    $major = 0
+    try {
+        if ((& node --version) -match '^v(\d+)') { $major = [int]$Matches[1] }
+    } catch {}
+    if ($major -gt 0 -and $major -lt 22) {
+        Write-Warn "Node $major is too old for the cc-switch importer (needs 22+); skipping. Configure providers in the cc-switch GUI."
+        return
+    }
+
+    $args = @($script, '--repo-root', $RepoRoot, '--claude-home', $ClaudeHome)
+    if ($CcSwitchSecrets) { $args += @('--secrets', $CcSwitchSecrets) }
+
+    & node @args
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warn 'cc-switch import did not complete. Add your providers manually in the cc-switch GUI.'
+        return
+    }
+    Write-Ok 'cc-switch configuration imported'
+}
+
 # Best-effort: open cc-switch so the user can add their provider (API key + URL).
 # Tries Start Menu shortcuts (most reliable across winget installs), then known exe paths.
 function Open-CcSwitch {
@@ -477,12 +514,13 @@ function Deploy-Repo {
 
     New-Item -ItemType Directory -Path $ClaudeHome -Force | Out-Null
 
-    # robocopy: copy everything except install/ and the repo-only files (templates rendered separately).
-    $excludeDirs  = @('install')
+    # robocopy: copy everything except repo-only dirs/files (templates rendered separately).
+    # .codex goes to $CodexHome, not here; cc-switch/ and tools/ are import sources, not runtime config.
+    $excludeDirs  = @('install', '.codex', 'cc-switch', 'tools', '.git', '.github', '.vscode')
     $excludeFiles = @('settings.template.json', 'mcp-servers.windows.json', 'mcp-servers.macos.json',
                       'LICENSE', 'README.md', '.gitignore', '.gitattributes', '.git')
     $rcArgs = @($RepoRoot, $ClaudeHome, '/E', '/XJ',
-                '/XD', $excludeDirs[0],
+                '/XD') + ($excludeDirs | ForEach-Object { Join-Path $RepoRoot $_ }) + @(
                 '/XF') + $excludeFiles + @('/NFL', '/NDL', '/NJH', '/NJS', '/NC', '/NS', '/NP')
     & robocopy @rcArgs | Out-Null
     if ($LASTEXITCODE -gt 7) {
@@ -597,6 +635,32 @@ function Deploy-CodexConfig {
         Copy-Item -LiteralPath $from -Destination $to -Force
         Write-Ok "Codex template deployed: $to"
     }
+
+    # agents/commands/hooks mirror the Claude-side set so both CLIs behave the same.
+    foreach ($dir in @('agents', 'commands', 'hooks')) {
+        $from = Join-Path $src $dir
+        if (-not (Test-Path $from)) { continue }
+        $to = Join-Path $CodexHome $dir
+        New-Item -ItemType Directory -Path $to -Force | Out-Null
+        $rcArgs = @($from, $to, '/E', '/XJ', '/NFL', '/NDL', '/NJH', '/NJS', '/NC', '/NS', '/NP')
+        & robocopy @rcArgs | Out-Null
+        if ($LASTEXITCODE -gt 7) { throw "Codex $dir robocopy failed with exit code $LASTEXITCODE" }
+        $n = @(Get-ChildItem -LiteralPath $to -File -ErrorAction SilentlyContinue).Count
+        Write-Ok "Codex $dir deployed ($n files)"
+    }
+
+    # Codex reads the same workflow docs as Claude; copy the markdown only (no PDFs/build junk).
+    $docsSrc = Join-Path $RepoRoot 'docs'
+    if (Test-Path $docsSrc) {
+        $docsDst = Join-Path $CodexHome 'docs'
+        New-Item -ItemType Directory -Path $docsDst -Force | Out-Null
+        foreach ($doc in @('environment.md', 'workflow.md', 'tools.md', 'safety.md')) {
+            $from = Join-Path $docsSrc $doc
+            if (Test-Path $from) { Copy-Item -LiteralPath $from -Destination (Join-Path $docsDst $doc) -Force }
+        }
+        Write-Ok "Codex docs deployed: $docsDst"
+    }
+
     Write-Info 'Codex auth/runtime files are intentionally not copied. Run `codex login` manually after install.'
 }
 

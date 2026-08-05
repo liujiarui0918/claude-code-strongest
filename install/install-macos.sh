@@ -31,6 +31,8 @@ FORCE=0
 RESET=0
 DRY_RUN=0
 INSTALL_CC_SWITCH=1
+CC_SWITCH_SECRETS=""
+IMPORT_CC_SWITCH=1
 
 # Resolve repo root: this script is in <repo>/install/, go up one.
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -107,6 +109,8 @@ while [ $# -gt 0 ]; do
         --codex-home)       CODEX_HOME="$2"; shift 2 ;;
         --reset)            RESET=1;           shift ;;
         --no-cc-switch)     INSTALL_CC_SWITCH=0; shift ;;
+        --cc-switch-secrets) CC_SWITCH_SECRETS="$2"; shift 2 ;;
+        --no-cc-switch-import) IMPORT_CC_SWITCH=0; shift ;;
         --non-interactive)  NON_INTERACTIVE=1; shift ;;
         --skip-prereqs)     SKIP_PREREQS=1;    shift ;;
         --force)            FORCE=1;           shift ;;
@@ -126,6 +130,10 @@ Options:
   --codex-home PATH       Override ~/.codex install location
   --reset                 Clean reinstall: back up + remove old config, re-login, reinstall extension
   --no-cc-switch          Skip cc-switch (installed by default: multi-provider switcher GUI via Homebrew)
+  --cc-switch-secrets F   JSON file mapping cc-switch key placeholders to real API keys
+                          (see cc-switch/README.md). Without it, providers are seeded
+                          with empty keys and you paste them in the cc-switch GUI.
+  --no-cc-switch-import   Do not seed the cc-switch database from cc-switch/
   --non-interactive       Do not auto-open cc-switch when done (for CI/scripted installs)
   --skip-prereqs          Skip installing brew / VS Code / Node / etc.
   --force                 Overwrite existing ~/.claude without prompting
@@ -371,6 +379,48 @@ open_cc_switch() {
     fi
 }
 
+# Seed cc-switch's own database (providers, common config, MCP servers, skill repos)
+# from the sanitized templates in cc-switch/. Existing API keys are never overwritten.
+import_cc_switch_config() {
+    log_step "Importing cc-switch configuration (providers, common config, MCP servers)"
+
+    local script="$REPO_ROOT/install/import-cc-switch.js"
+    if [ ! -f "$script" ]; then
+        log_warn "cc-switch importer not found ($script); skipping."
+        return 0
+    fi
+    if ! command_exists node; then
+        log_warn "Node.js not on PATH; skipping cc-switch import. Re-run the installer in a new shell."
+        return 0
+    fi
+
+    # node:sqlite (used by the importer) landed in Node 22. Older runtimes cannot seed the DB.
+    local major
+    major=$(node --version 2>/dev/null | sed -n 's/^v\([0-9]*\).*/\1/p')
+    if [ -n "$major" ] && [ "$major" -lt 22 ]; then
+        log_warn "Node $major is too old for the cc-switch importer (needs 22+); skipping. Use the cc-switch GUI."
+        return 0
+    fi
+
+    local args="--repo-root $REPO_ROOT --claude-home $CLAUDE_HOME"
+    if [ $DRY_RUN -eq 1 ]; then
+        log_info "[dry-run] would run: node $script $args"
+        return 0
+    fi
+
+    # shellcheck disable=SC2086
+    if [ -n "$CC_SWITCH_SECRETS" ]; then
+        node "$script" --repo-root "$REPO_ROOT" --claude-home "$CLAUDE_HOME" --secrets "$CC_SWITCH_SECRETS"
+    else
+        node "$script" --repo-root "$REPO_ROOT" --claude-home "$CLAUDE_HOME"
+    fi
+    if [ $? -ne 0 ]; then
+        log_warn "cc-switch import did not complete. Add your providers manually in the cc-switch GUI."
+        return 0
+    fi
+    log_ok "cc-switch configuration imported"
+}
+
 # ----------------------------------------------------------------------------
 # Deploy
 # ----------------------------------------------------------------------------
@@ -411,6 +461,12 @@ deploy_repo() {
     mkdir -p "$CLAUDE_HOME"
     rsync -a \
         --exclude 'install/' \
+        --exclude '.codex/' \
+        --exclude 'cc-switch/' \
+        --exclude 'tools/' \
+        --exclude '.git/' \
+        --exclude '.github/' \
+        --exclude '.vscode/' \
         --exclude 'settings.template.json' \
         --exclude 'mcp-servers.windows.json' \
         --exclude 'mcp-servers.macos.json' \
@@ -418,7 +474,6 @@ deploy_repo() {
         --exclude 'README.md' \
         --exclude '.gitignore' \
         --exclude '.gitattributes' \
-        --exclude '.git/' \
         --exclude 'install-windows.bat' \
         --exclude 'install-macos.command' \
         "$REPO_ROOT/" "$CLAUDE_HOME/"
@@ -499,19 +554,25 @@ deploy_mcp() {
     fi
 
     # Merge with Node (always installed by this script). Writes UTF-8 without BOM.
+    # An existing config that fails to parse aborts the merge instead of being replaced by
+    # {} -- ~/.claude.json holds project history, onboarding state, and the machine id.
     if TPL="$tpl" CFG="$cfg" TZVAL="$TIMEZONE" node -e '
         const fs = require("fs");
         const tplRaw = fs.readFileSync(process.env.TPL, "utf8").replace(/\{\{TIMEZONE\}\}/g, process.env.TZVAL);
         const mcp = JSON.parse(tplRaw);
         let cfg = {};
-        try { cfg = JSON.parse(fs.readFileSync(process.env.CFG, "utf8")); } catch (e) { cfg = {}; }
+        if (fs.existsSync(process.env.CFG)) {
+            const raw = fs.readFileSync(process.env.CFG, "utf8");
+            if (raw.trim()) cfg = JSON.parse(raw);
+        }
         cfg.mcpServers = mcp;
         if (cfg.hasCompletedOnboarding === undefined) cfg.hasCompletedOnboarding = true;
         fs.writeFileSync(process.env.CFG, JSON.stringify(cfg, null, 2));
     '; then
         log_ok "Configured 8 MCP servers in $cfg"
     else
-        log_warn "MCP merge via node failed; you can run /mcp-status later to diagnose."
+        log_warn "MCP merge failed; your $cfg was left unchanged (backup alongside it)."
+        log_info "Run /mcp-status inside Claude Code later to diagnose."
     fi
 }
 
@@ -534,6 +595,29 @@ deploy_codex_config() {
             log_ok "Codex template deployed: $CODEX_HOME/$file"
         fi
     done
+
+    # agents/commands/hooks mirror the Claude-side set so both CLIs behave the same.
+    for dir in agents commands hooks; do
+        if [ -d "$src/$dir" ]; then
+            mkdir -p "$CODEX_HOME/$dir"
+            rsync -a "$src/$dir/" "$CODEX_HOME/$dir/"
+            local n; n=$(find "$CODEX_HOME/$dir" -type f | wc -l | tr -d ' ')
+            log_ok "Codex $dir deployed ($n files)"
+        fi
+    done
+
+    # Codex reads the same workflow docs as Claude; copy the markdown only.
+    local docs_src="$REPO_ROOT/docs"
+    if [ -d "$docs_src" ]; then
+        mkdir -p "$CODEX_HOME/docs"
+        for doc in environment.md workflow.md tools.md safety.md; do
+            if [ -f "$docs_src/$doc" ]; then
+                cp "$docs_src/$doc" "$CODEX_HOME/docs/$doc"
+            fi
+        done
+        log_ok "Codex docs deployed: $CODEX_HOME/docs"
+    fi
+
     log_info "Codex auth/runtime files are intentionally not copied. Run 'codex login' manually after install."
 }
 
@@ -567,6 +651,8 @@ verify_install() {
     check "Codex AGENTS.md exists"     "[ -f '$CODEX_HOME/AGENTS.md' ]"
     check "Codex config.toml exists"   "[ -f '$CODEX_HOME/config.toml' ]"
     check "Codex .gitignore protects auth" "grep -q 'auth\.json' '$CODEX_HOME/.gitignore'"
+    check "Codex agents/ has >=20"     "[ \$(ls -1 '$CODEX_HOME/agents'/*.toml 2>/dev/null | wc -l | tr -d ' ') -ge 20 ]"
+    check "Codex commands/ has >=20"   "[ \$(ls -1 '$CODEX_HOME/commands'/*.md 2>/dev/null | wc -l | tr -d ' ') -ge 20 ]"
     check "Codex VS Code extension installed" "if command -v code >/dev/null 2>&1; then code --list-extensions | grep -qi '^openai\.chatgpt$'; else exit 1; fi"
     check "~/.claude.json 8 MCPs"     "node -e 'const j=JSON.parse(require(\"fs\").readFileSync(process.env.HOME+\"/.claude.json\",\"utf8\"));process.exit(Object.keys(j.mcpServers||{}).length>=8?0:1)'"
 
@@ -632,6 +718,10 @@ main() {
     render_settings
     deploy_mcp
     deploy_codex_config
+
+    if [ $INSTALL_CC_SWITCH -eq 1 ] && [ $IMPORT_CC_SWITCH -eq 1 ]; then
+        import_cc_switch_config
+    fi
 
     if [ $DRY_RUN -eq 0 ]; then
         verify_install

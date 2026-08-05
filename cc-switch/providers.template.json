@@ -1,0 +1,739 @@
+{
+  "$comment": "Exported by tools/export-cc-switch.js. Every {{PLACEHOLDER}} must be filled in before import, or left blank to add the key later in the cc-switch UI.",
+  "placeholders": [
+    "A6API_ANTHROPIC_AUTH_TOKEN",
+    "AI_OPENAI_API_KEY",
+    "ANYROUTER_ANTHROPIC_AUTH_TOKEN",
+    "ANYROUTER_OPENAI_API_KEY",
+    "DEEPKEY_CLAUDE_ANTHROPIC_AUTH_TOKEN",
+    "DEEPKEY_CODEX_OPENAI_API_KEY"
+  ],
+  "providers": [
+    {
+      "id": "a6api-1785829593978",
+      "appType": "claude",
+      "name": "a6api",
+      "websiteUrl": "https://a6api.com",
+      "category": null,
+      "sortIndex": 0,
+      "notes": "",
+      "icon": null,
+      "iconColor": null,
+      "providerType": null,
+      "meta": {
+        "commonConfigEnabled": false,
+        "endpointAutoSelect": true,
+        "apiFormat": "anthropic"
+      },
+      "settingsConfig": {
+        "effortLevel": "max",
+        "env": {
+          "ANTHROPIC_AUTH_TOKEN": "{{A6API_ANTHROPIC_AUTH_TOKEN}}",
+          "ANTHROPIC_BASE_URL": "https://a6api.com",
+          "ANTHROPIC_DEFAULT_FABLE_MODEL": "claude-opus-5[1M]",
+          "ANTHROPIC_DEFAULT_FABLE_MODEL_NAME": "claude-opus-5",
+          "ANTHROPIC_DEFAULT_HAIKU_MODEL": "grok-4.5",
+          "ANTHROPIC_DEFAULT_OPUS_MODEL": "gpt-5.6-sol[1M]",
+          "ANTHROPIC_DEFAULT_OPUS_MODEL_NAME": "gpt-5.6-sol",
+          "ANTHROPIC_DEFAULT_SONNET_MODEL": "kimi-k3[1M]",
+          "ANTHROPIC_DEFAULT_SONNET_MODEL_NAME": "kimi-k3",
+          "ANTHROPIC_MODEL": "claude-opus-5[1M]",
+          "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+          "CLAUDE_CODE_SUBAGENT_MODEL": "claude-opus-5[1M]",
+          "CLAUDE_DISABLED_HOOKS": "",
+          "CLAUDE_HOOKS_LOG_DIR": "{{CLAUDE_HOME}}/logs",
+          "EDITOR": "code --wait",
+          "ENABLE_TOOL_SEARCH": "true"
+        },
+        "extraKnownMarketplaces": {
+          "anthropics": {
+            "source": {
+              "repo": "anthropics/claude-plugins-official",
+              "source": "github"
+            }
+          },
+          "superpowers": {
+            "source": {
+              "repo": "obra/superpowers-marketplace",
+              "source": "github"
+            }
+          },
+          "voltagent": {
+            "source": {
+              "repo": "VoltAgent/awesome-claude-code-subagents",
+              "source": "github"
+            }
+          },
+          "wshobson": {
+            "source": {
+              "repo": "wshobson/agents",
+              "source": "github"
+            }
+          }
+        },
+        "hooks": {
+          "Notification": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/notify.ps1",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "PostToolUse": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/auto-format.ps1",
+                  "type": "command"
+                },
+                {
+                  "async": true,
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/typecheck.ps1",
+                  "type": "command"
+                }
+              ],
+              "matcher": "Edit|Write"
+            },
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/command-log.ps1",
+                  "type": "command"
+                }
+              ],
+              "matcher": "Bash|PowerShell"
+            }
+          ],
+          "PreCompact": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/precompact-backup.ps1",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "PreToolUse": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/block-dangerous.ps1",
+                  "type": "command"
+                }
+              ],
+              "matcher": "Bash|PowerShell"
+            },
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/protect-secrets.ps1",
+                  "type": "command"
+                }
+              ],
+              "matcher": "Read|Edit|Write|Bash|PowerShell"
+            }
+          ],
+          "SessionStart": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/session-start-context.ps1",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "Stop": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/stop-sound.ps1",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "SubagentStop": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/subagent-stop.ps1",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "UserPromptSubmit": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/smart-context.ps1",
+                  "timeout": 5,
+                  "type": "command"
+                }
+              ]
+            }
+          ]
+        },
+        "model": "fable",
+        "permissions": {
+          "deny": [
+            "PowerShell(Format-Volume*)",
+            "PowerShell(Stop-Computer*)",
+            "PowerShell(Restart-Computer*)",
+            "PowerShell(Clear-RecycleBin*)",
+            "PowerShell(Remove-PSDrive*)"
+          ]
+        },
+        "skipDangerousModePermissionPrompt": true,
+        "statusLine": {
+          "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/statusline.ps1",
+          "padding": 0,
+          "refreshInterval": 10,
+          "type": "command"
+        },
+        "theme": "dark"
+      }
+    },
+    {
+      "id": "a94aed18-4d9a-4fe0-9c22-2f1e94731b9a",
+      "appType": "claude",
+      "name": "anyrouter",
+      "websiteUrl": "",
+      "category": null,
+      "sortIndex": 0,
+      "notes": "",
+      "icon": null,
+      "iconColor": null,
+      "providerType": null,
+      "meta": {
+        "commonConfigEnabled": false,
+        "endpointAutoSelect": true,
+        "apiFormat": "anthropic"
+      },
+      "settingsConfig": {
+        "effortLevel": "max",
+        "env": {
+          "ANTHROPIC_AUTH_TOKEN": "{{ANYROUTER_ANTHROPIC_AUTH_TOKEN}}",
+          "ANTHROPIC_BASE_URL": "https://a-ocnfniawgw.cn-shanghai.fcapp.run",
+          "ANTHROPIC_DEFAULT_FABLE_MODEL": "claude-opus-5[1M]",
+          "ANTHROPIC_DEFAULT_FABLE_MODEL_NAME": "claude-opus-5",
+          "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-opus-4-8",
+          "ANTHROPIC_DEFAULT_HAIKU_MODEL_NAME": "claude-opus-4-8",
+          "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-fable-5[1M]",
+          "ANTHROPIC_DEFAULT_OPUS_MODEL_NAME": "claude-fable-5",
+          "ANTHROPIC_DEFAULT_SONNET_MODEL": "gpt-5.6-sol[1M]",
+          "ANTHROPIC_DEFAULT_SONNET_MODEL_NAME": "gpt-5.6-sol",
+          "ANTHROPIC_MODEL": "claude-opus-5[1M]",
+          "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+          "CLAUDE_CODE_SUBAGENT_MODEL": "claude-opus-5[1M]",
+          "CLAUDE_DISABLED_HOOKS": "",
+          "CLAUDE_HOOKS_LOG_DIR": "{{CLAUDE_HOME}}/logs",
+          "EDITOR": "code --wait",
+          "ENABLE_TOOL_SEARCH": "true"
+        },
+        "extraKnownMarketplaces": {
+          "anthropics": {
+            "source": {
+              "repo": "anthropics/claude-plugins-official",
+              "source": "github"
+            }
+          },
+          "superpowers": {
+            "source": {
+              "repo": "obra/superpowers-marketplace",
+              "source": "github"
+            }
+          },
+          "voltagent": {
+            "source": {
+              "repo": "VoltAgent/awesome-claude-code-subagents",
+              "source": "github"
+            }
+          },
+          "wshobson": {
+            "source": {
+              "repo": "wshobson/agents",
+              "source": "github"
+            }
+          }
+        },
+        "hooks": {
+          "Notification": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/notify.ps1",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "PostToolUse": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/auto-format.ps1",
+                  "type": "command"
+                },
+                {
+                  "async": true,
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/typecheck.ps1",
+                  "type": "command"
+                }
+              ],
+              "matcher": "Edit|Write"
+            },
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/command-log.ps1",
+                  "type": "command"
+                }
+              ],
+              "matcher": "Bash|PowerShell"
+            }
+          ],
+          "PreCompact": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/precompact-backup.ps1",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "PreToolUse": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/block-dangerous.ps1",
+                  "type": "command"
+                }
+              ],
+              "matcher": "Bash|PowerShell"
+            },
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/protect-secrets.ps1",
+                  "type": "command"
+                }
+              ],
+              "matcher": "Read|Edit|Write|Bash|PowerShell"
+            }
+          ],
+          "SessionStart": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/session-start-context.ps1",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "Stop": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/stop-sound.ps1",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "SubagentStop": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/subagent-stop.ps1",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "UserPromptSubmit": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/smart-context.ps1",
+                  "timeout": 5,
+                  "type": "command"
+                }
+              ]
+            }
+          ]
+        },
+        "model": "fable",
+        "permissions": {
+          "deny": [
+            "PowerShell(Format-Volume*)",
+            "PowerShell(Stop-Computer*)",
+            "PowerShell(Restart-Computer*)",
+            "PowerShell(Clear-RecycleBin*)",
+            "PowerShell(Remove-PSDrive*)"
+          ]
+        },
+        "skipDangerousModePermissionPrompt": true,
+        "statusLine": {
+          "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/statusline.ps1",
+          "padding": 0,
+          "refreshInterval": 10,
+          "type": "command"
+        },
+        "theme": "dark"
+      }
+    },
+    {
+      "id": "deepkey-claude-1785833014794",
+      "appType": "claude",
+      "name": "deepkey-claude",
+      "websiteUrl": "https://deepkey.top",
+      "category": null,
+      "sortIndex": 0,
+      "notes": "",
+      "icon": null,
+      "iconColor": null,
+      "providerType": null,
+      "meta": {
+        "commonConfigEnabled": false,
+        "usage_script": {
+          "enabled": true,
+          "language": "javascript",
+          "code": "({\n      request: {\n        url: \"https://deepkey.top/api/user/self\",\n        method: \"GET\",\n        headers: { \"Authorization\": \"{{apiKey}}\" }\n      },\n      extractor: function(response) {\n        const data = response.data || response;\n        const remaining = (data.quota || 0) / 500000;\n        return {\n          isValid: true,\n          remaining: remaining.toFixed(2),\n          unit: \"USD\"\n        };\n      }\n    })",
+          "timeout": 10,
+          "autoQueryInterval": 60
+        },
+        "endpointAutoSelect": true,
+        "apiFormat": "anthropic"
+      },
+      "settingsConfig": {
+        "env": {
+          "ANTHROPIC_AUTH_TOKEN": "{{DEEPKEY_CLAUDE_ANTHROPIC_AUTH_TOKEN}}",
+          "ANTHROPIC_BASE_URL": "https://deepkey.top",
+          "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-4-5-20251001",
+          "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-fable-5[1M]",
+          "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-5[1M]",
+          "ANTHROPIC_MODEL": "claude-opus-5[1M]",
+          "ANTHROPIC_DEFAULT_FABLE_MODEL": "claude-opus-5[1M]",
+          "ANTHROPIC_DEFAULT_FABLE_MODEL_NAME": "claude-opus-5",
+          "ANTHROPIC_DEFAULT_OPUS_MODEL_NAME": "claude-fable-5",
+          "ANTHROPIC_DEFAULT_SONNET_MODEL_NAME": "claude-sonnet-5",
+          "ANTHROPIC_DEFAULT_HAIKU_MODEL_NAME": "claude-haiku-4-5-20251001",
+          "CLAUDE_CODE_SUBAGENT_MODEL": "claude-opus-5[1M]",
+          "ENABLE_TOOL_SEARCH": "true",
+          "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+          "CLAUDE_CODE_EFFORT_LEVEL": "max",
+          "EDITOR": "code --wait",
+          "CLAUDE_HOOKS_LOG_DIR": "{{CLAUDE_HOME}}/logs",
+          "CLAUDE_DISABLED_HOOKS": ""
+        },
+        "effortLevel": "max",
+        "extraKnownMarketplaces": {
+          "anthropics": {
+            "source": {
+              "repo": "anthropics/claude-plugins-official",
+              "source": "github"
+            }
+          },
+          "superpowers": {
+            "source": {
+              "repo": "obra/superpowers-marketplace",
+              "source": "github"
+            }
+          },
+          "voltagent": {
+            "source": {
+              "repo": "VoltAgent/awesome-claude-code-subagents",
+              "source": "github"
+            }
+          },
+          "wshobson": {
+            "source": {
+              "repo": "wshobson/agents",
+              "source": "github"
+            }
+          }
+        },
+        "hooks": {
+          "Notification": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/notify.ps1",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "PostToolUse": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/auto-format.ps1",
+                  "type": "command"
+                },
+                {
+                  "async": true,
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/typecheck.ps1",
+                  "type": "command"
+                }
+              ],
+              "matcher": "Edit|Write"
+            },
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/command-log.ps1",
+                  "type": "command"
+                }
+              ],
+              "matcher": "Bash|PowerShell"
+            }
+          ],
+          "PreCompact": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/precompact-backup.ps1",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "PreToolUse": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/block-dangerous.ps1",
+                  "type": "command"
+                }
+              ],
+              "matcher": "Bash|PowerShell"
+            },
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/protect-secrets.ps1",
+                  "type": "command"
+                }
+              ],
+              "matcher": "Read|Edit|Write|Bash|PowerShell"
+            }
+          ],
+          "SessionStart": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/session-start-context.ps1",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "Stop": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/stop-sound.ps1",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "SubagentStop": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/subagent-stop.ps1",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "UserPromptSubmit": [
+            {
+              "hooks": [
+                {
+                  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/smart-context.ps1",
+                  "timeout": 5,
+                  "type": "command"
+                }
+              ]
+            }
+          ]
+        },
+        "model": "fable",
+        "permissions": {
+          "deny": [
+            "PowerShell(Format-Volume*)",
+            "PowerShell(Stop-Computer*)",
+            "PowerShell(Restart-Computer*)",
+            "PowerShell(Clear-RecycleBin*)",
+            "PowerShell(Remove-PSDrive*)"
+          ]
+        },
+        "skipDangerousModePermissionPrompt": true,
+        "statusLine": {
+          "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/statusline.ps1",
+          "padding": 0,
+          "refreshInterval": 10,
+          "type": "command"
+        },
+        "theme": "dark"
+      }
+    },
+    {
+      "id": "f09fd1b1-24e5-4b38-b01a-154c0ed80042",
+      "appType": "claude-desktop",
+      "name": "anyrouter",
+      "websiteUrl": "",
+      "category": null,
+      "sortIndex": 0,
+      "notes": "",
+      "icon": null,
+      "iconColor": null,
+      "providerType": null,
+      "meta": {
+        "claudeDesktopMode": "proxy",
+        "claudeDesktopModelRoutes": {
+          "claude-sonnet-5": {
+            "model": "gpt-5.6-sol",
+            "labelOverride": "gpt-5.6-sol",
+            "supports1m": true
+          },
+          "claude-haiku-4-5": {
+            "model": "claude-opus-4-8",
+            "labelOverride": "claude-opus-4-8",
+            "supports1m": true
+          },
+          "claude-opus-4-8": {
+            "model": "claude-fable-5",
+            "labelOverride": "claude-fable-5",
+            "supports1m": true
+          },
+          "claude-fable-5": {
+            "model": "claude-opus-5",
+            "labelOverride": "claude-opus-5",
+            "supports1m": true
+          }
+        },
+        "apiFormat": "anthropic"
+      },
+      "settingsConfig": {
+        "env": {
+          "ANTHROPIC_BASE_URL": "https://anyrouter.top",
+          "ANTHROPIC_AUTH_TOKEN": "{{ANYROUTER_ANTHROPIC_AUTH_TOKEN}}"
+        }
+      }
+    },
+    {
+      "id": "95d9a298-d515-44b8-9775-c8afdb18952c",
+      "appType": "codex",
+      "name": "anyrouter",
+      "websiteUrl": "",
+      "category": null,
+      "sortIndex": 0,
+      "notes": "",
+      "icon": null,
+      "iconColor": null,
+      "providerType": null,
+      "meta": {
+        "commonConfigEnabled": true,
+        "endpointAutoSelect": true,
+        "apiFormat": "openai_responses"
+      },
+      "settingsConfig": {
+        "auth": {
+          "OPENAI_API_KEY": "{{ANYROUTER_OPENAI_API_KEY}}"
+        },
+        "config": "model_provider = \"custom\"\nmodel = \"gpt-5.6-sol\"\nmodel_catalog_json = \"cc-switch-model-catalog.json\"\n\n[model_providers.custom]\nname = \"custom\"\nwire_api = \"responses\"\nrequires_openai_auth = true\nbase_url = \"https://anyrouter.top/v1\"\n",
+        "modelCatalog": {
+          "models": [
+            {
+              "model": "claude-fable-5",
+              "displayName": "claude-fable-5",
+              "contextWindow": 1048576
+            },
+            {
+              "model": "gpt-5.6-sol",
+              "displayName": "gpt-5.6-sol",
+              "contextWindow": 1048576
+            },
+            {
+              "model": "claude-opus-4-8",
+              "displayName": "claude-opus-4-8",
+              "contextWindow": 1048576
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "deepkey-codex-1785220929770",
+      "appType": "codex",
+      "name": "deepkey-codex",
+      "websiteUrl": "https://deepkey.top",
+      "category": null,
+      "sortIndex": 0,
+      "notes": "",
+      "icon": null,
+      "iconColor": null,
+      "providerType": null,
+      "meta": {
+        "commonConfigEnabled": true,
+        "usage_script": {
+          "enabled": true,
+          "language": "javascript",
+          "code": "({\n      request: {\n        url: \"https://deepkey.top/api/user/self\",\n        method: \"GET\",\n        headers: { \"Authorization\": \"{{apiKey}}\" }\n      },\n      extractor: function(response) {\n        const data = response.data || response;\n        const remaining = (data.quota || 0) / 500000;\n        return {\n          isValid: true,\n          remaining: remaining.toFixed(2),\n          unit: \"USD\"\n        };\n      }\n    })",
+          "timeout": 10,
+          "autoQueryInterval": 60
+        },
+        "endpointAutoSelect": true,
+        "apiFormat": "openai_responses"
+      },
+      "settingsConfig": {
+        "auth": {
+          "OPENAI_API_KEY": "{{DEEPKEY_CODEX_OPENAI_API_KEY}}"
+        },
+        "config": "model_provider = \"custom\"\nmodel = \"gpt-5.6-sol\"\n\n[model_providers.custom]\nname = \"deepkey-codex\"\nbase_url = \"https://deepkey.top/v1\"\nwire_api = \"responses\"\nrequires_openai_auth = true\n"
+      }
+    },
+    {
+      "id": "聪明ai-1785214850272",
+      "appType": "codex",
+      "name": "聪明AI",
+      "websiteUrl": "https://sub2.congmingai.com",
+      "category": null,
+      "sortIndex": 0,
+      "notes": "",
+      "icon": null,
+      "iconColor": null,
+      "providerType": null,
+      "meta": {
+        "commonConfigEnabled": true,
+        "usage_script": {
+          "enabled": true,
+          "language": "javascript",
+          "code": "({\n    request: {\n      url: \"{{baseUrl}}/v1/usage\",\n      method: \"GET\",\n      headers: { \"Authorization\": \"Bearer {{apiKey}}\" }\n    },\n    extractor: function(response) {\n      const remaining = response?.remaining ?? response?.quota?.remaining ?? response?.balance;\n      const unit = response?.unit ?? response?.quota?.unit ?? \"USD\";\n      return {\n        isValid: response?.is_active ?? response?.isValid ?? true,\n        remaining,\n        unit\n      };\n    }\n  })",
+          "timeout": 10,
+          "autoQueryInterval": 30
+        },
+        "endpointAutoSelect": true,
+        "apiFormat": "openai_responses"
+      },
+      "settingsConfig": {
+        "auth": {
+          "OPENAI_API_KEY": "{{AI_OPENAI_API_KEY}}"
+        },
+        "config": "model_provider = \"custom\"\nmodel = \"gpt-5.6-sol\"\n\n[model_providers.custom]\nname = \"聪明AI\"\nbase_url = \"https://sub2.congmingai.com\"\nwire_api = \"responses\"\nrequires_openai_auth = true\n"
+      }
+    }
+  ]
+}

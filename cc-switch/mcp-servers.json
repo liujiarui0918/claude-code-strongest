@@ -1,0 +1,152 @@
+{
+  "servers": [
+    {
+      "name": "context7",
+      "config": {
+        "type": "http",
+        "url": "https://mcp.context7.com/mcp"
+      },
+      "tags": "[]",
+      "enabled_claude": 1,
+      "enabled_codex": 1,
+      "enabled_gemini": 1,
+      "enabled_opencode": 1,
+      "enabled_hermes": 1,
+      "enabled_grokbuild": 1
+    },
+    {
+      "name": "deepwiki",
+      "config": {
+        "type": "http",
+        "url": "https://mcp.deepwiki.com/mcp"
+      },
+      "tags": "[]",
+      "enabled_claude": 1,
+      "enabled_codex": 1,
+      "enabled_gemini": 1,
+      "enabled_opencode": 1,
+      "enabled_hermes": 1,
+      "enabled_grokbuild": 1
+    },
+    {
+      "name": "fetch",
+      "config": {
+        "type": "stdio",
+        "command": "{{UVX}}",
+        "args": [
+          "mcp-server-fetch"
+        ],
+        "env": {}
+      },
+      "tags": "[]",
+      "enabled_claude": 1,
+      "enabled_codex": 1,
+      "enabled_gemini": 1,
+      "enabled_opencode": 1,
+      "enabled_hermes": 1,
+      "enabled_grokbuild": 1
+    },
+    {
+      "name": "git-mcp",
+      "config": {
+        "type": "stdio",
+        "command": "{{UVX}}",
+        "args": [
+          "mcp-server-git"
+        ],
+        "env": {}
+      },
+      "tags": "[]",
+      "enabled_claude": 1,
+      "enabled_codex": 1,
+      "enabled_gemini": 1,
+      "enabled_opencode": 1,
+      "enabled_hermes": 1,
+      "enabled_grokbuild": 1
+    },
+    {
+      "name": "memory",
+      "config": {
+        "type": "stdio",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "npx",
+          "-y",
+          "@modelcontextprotocol/server-memory"
+        ],
+        "env": {}
+      },
+      "tags": "[]",
+      "enabled_claude": 1,
+      "enabled_codex": 1,
+      "enabled_gemini": 1,
+      "enabled_opencode": 1,
+      "enabled_hermes": 1,
+      "enabled_grokbuild": 1
+    },
+    {
+      "name": "playwright",
+      "config": {
+        "type": "stdio",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "npx",
+          "-y",
+          "@playwright/mcp@latest",
+          "--headless"
+        ],
+        "env": {}
+      },
+      "tags": "[]",
+      "enabled_claude": 1,
+      "enabled_codex": 1,
+      "enabled_gemini": 1,
+      "enabled_opencode": 1,
+      "enabled_hermes": 1,
+      "enabled_grokbuild": 1
+    },
+    {
+      "name": "sequential-thinking",
+      "config": {
+        "type": "stdio",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "npx",
+          "-y",
+          "@modelcontextprotocol/server-sequential-thinking"
+        ],
+        "env": {}
+      },
+      "tags": "[]",
+      "enabled_claude": 1,
+      "enabled_codex": 1,
+      "enabled_gemini": 1,
+      "enabled_opencode": 1,
+      "enabled_hermes": 1,
+      "enabled_grokbuild": 1
+    },
+    {
+      "name": "time",
+      "config": {
+        "type": "stdio",
+        "command": "{{UVX}}",
+        "args": [
+          "mcp-server-time",
+          "--local-timezone",
+          "{{TIMEZONE}}"
+        ],
+        "env": {}
+      },
+      "tags": "[]",
+      "enabled_claude": 1,
+      "enabled_codex": 1,
+      "enabled_gemini": 1,
+      "enabled_opencode": 1,
+      "enabled_hermes": 1,
+      "enabled_grokbuild": 1
+    }
+  ]
+}

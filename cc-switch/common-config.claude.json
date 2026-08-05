@@ -1,0 +1,173 @@
+{
+  "effortLevel": "max",
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "ENABLE_TOOL_SEARCH": "true",
+    "ANTHROPIC_DEFAULT_FABLE_MODEL": "claude-fable-5[1M]",
+    "ANTHROPIC_DEFAULT_FABLE_MODEL_NAME": "claude-fable-5",
+    "EDITOR": "code --wait",
+    "CLAUDE_HOOKS_LOG_DIR": "{{CLAUDE_HOME}}/logs",
+    "CLAUDE_DISABLED_HOOKS": ""
+  },
+  "extraKnownMarketplaces": {
+    "anthropics": {
+      "source": {
+        "repo": "anthropics/claude-plugins-official",
+        "source": "github"
+      }
+    },
+    "superpowers": {
+      "source": {
+        "repo": "obra/superpowers-marketplace",
+        "source": "github"
+      }
+    },
+    "voltagent": {
+      "source": {
+        "repo": "VoltAgent/awesome-claude-code-subagents",
+        "source": "github"
+      }
+    },
+    "wshobson": {
+      "source": {
+        "repo": "wshobson/agents",
+        "source": "github"
+      }
+    }
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/notify.ps1",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/auto-format.ps1",
+            "type": "command"
+          },
+          {
+            "async": true,
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/typecheck.ps1",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write"
+      },
+      {
+        "hooks": [
+          {
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/command-log.ps1",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash|PowerShell"
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/precompact-backup.ps1",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/block-dangerous.ps1",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash|PowerShell"
+      },
+      {
+        "hooks": [
+          {
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/protect-secrets.ps1",
+            "type": "command"
+          }
+        ],
+        "matcher": "Read|Edit|Write|Bash|PowerShell"
+      },
+      {
+        "hooks": [
+          {
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/protect-linter-configs.ps1",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write|MultiEdit"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/session-start-context.ps1",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/stop-sound.ps1",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/subagent-stop.ps1",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/smart-context.ps1",
+            "timeout": 5,
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  },
+  "model": "fable",
+  "permissions": {
+    "deny": [
+      "PowerShell(Format-Volume*)",
+      "PowerShell(Stop-Computer*)",
+      "PowerShell(Restart-Computer*)",
+      "PowerShell(Clear-RecycleBin*)",
+      "PowerShell(Remove-PSDrive*)"
+    ]
+  },
+  "skipDangerousModePermissionPrompt": true,
+  "statusLine": {
+    "command": "powershell -NoProfile -ExecutionPolicy Bypass -File {{CLAUDE_HOME}}/hooks/statusline.ps1",
+    "padding": 0,
+    "refreshInterval": 10,
+    "type": "command"
+  },
+  "theme": "dark"
+}

@@ -20,6 +20,19 @@ settings.json.*-bak
 settings.json.bak.*
 .claude.json
 .claude.json.backup.*
+.claude.json.bak.*
+.claude.json.damaged-*
+
+# cc-switch: the database holds plaintext API keys, and secrets files map
+# placeholders to real keys. Only the sanitized cc-switch/*.json templates belong here.
+cc-switch.db
+cc-switch.db-*
+*.db
+*.sqlite
+*.sqlite-*
+secrets.json
+*-secrets.json
+cc-switch-secrets*.json
 
 # Memory (user-specific learning store)
 memory/
