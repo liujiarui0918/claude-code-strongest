@@ -476,6 +476,7 @@ deploy_repo() {
         --exclude '.gitattributes' \
         --exclude 'install-windows.bat' \
         --exclude 'install-macos.command' \
+        --exclude 'AGENTS_FUSION_PLAN.md' \
         "$REPO_ROOT/" "$CLAUDE_HOME/"
     log_ok "Files copied"
 }
@@ -643,6 +644,7 @@ verify_install() {
     check "settings.json exists"      "[ -f '$CLAUDE_HOME/settings.json' ]"
     check "settings.json parses"      "node -e 'JSON.parse(require(\"fs\").readFileSync(\"$CLAUDE_HOME/settings.json\",\"utf8\"))'"
     check "CLAUDE.md exists"          "[ -f '$CLAUDE_HOME/CLAUDE.md' ]"
+    check "AGENTS.md exists"          "[ -f '$CLAUDE_HOME/AGENTS.md' ]"
     check "docs/ has >=4 files"       "[ \$(ls -1 '$CLAUDE_HOME/docs' 2>/dev/null | wc -l | tr -d ' ') -ge 4 ]"
     check "skills/ has >=30 entries"  "[ \$(ls -1 '$CLAUDE_HOME/skills' 2>/dev/null | wc -l | tr -d ' ') -ge 30 ]"
     check "agents/ has >=20 entries"  "[ \$(ls -1 '$CLAUDE_HOME/agents'/*.md 2>/dev/null | wc -l | tr -d ' ') -ge 20 ]"

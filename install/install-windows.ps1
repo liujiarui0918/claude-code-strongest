@@ -518,7 +518,8 @@ function Deploy-Repo {
     # .codex goes to $CodexHome, not here; cc-switch/ and tools/ are import sources, not runtime config.
     $excludeDirs  = @('install', '.codex', 'cc-switch', 'tools', '.git', '.github', '.vscode')
     $excludeFiles = @('settings.template.json', 'mcp-servers.windows.json', 'mcp-servers.macos.json',
-                      'LICENSE', 'README.md', '.gitignore', '.gitattributes', '.git')
+                      'LICENSE', 'README.md', '.gitignore', '.gitattributes', '.git',
+                      'AGENTS_FUSION_PLAN.md')
     $rcArgs = @($RepoRoot, $ClaudeHome, '/E', '/XJ',
                 '/XD') + ($excludeDirs | ForEach-Object { Join-Path $RepoRoot $_ }) + @(
                 '/XF') + $excludeFiles + @('/NFL', '/NDL', '/NJH', '/NJS', '/NC', '/NS', '/NP')
@@ -684,6 +685,7 @@ function Verify-Install {
         @{ Name = 'settings.json exists';          Test = { Test-Path (Join-Path $ClaudeHome 'settings.json') } },
         @{ Name = 'settings.json parses';          Test = { try { Get-Content (Join-Path $ClaudeHome 'settings.json') -Raw | ConvertFrom-Json | Out-Null; $true } catch { $false } } },
         @{ Name = 'CLAUDE.md exists';              Test = { Test-Path (Join-Path $ClaudeHome 'CLAUDE.md') } },
+        @{ Name = 'AGENTS.md exists';              Test = { Test-Path (Join-Path $ClaudeHome 'AGENTS.md') } },
         @{ Name = 'docs/ has 4 files';             Test = { @(Get-ChildItem (Join-Path $ClaudeHome 'docs') -File -ErrorAction SilentlyContinue).Count -ge 4 } },
         @{ Name = 'skills/ has >= 30';             Test = { @(Get-ChildItem (Join-Path $ClaudeHome 'skills') -Directory -ErrorAction SilentlyContinue).Count -ge 30 } },
         @{ Name = 'agents/ has >= 20';             Test = { @(Get-ChildItem (Join-Path $ClaudeHome 'agents') -Filter *.md -File -ErrorAction SilentlyContinue).Count -ge 20 } },

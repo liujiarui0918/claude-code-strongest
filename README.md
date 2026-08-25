@@ -229,6 +229,8 @@ cd claude-code-codex-strongest
 
 Claude Code Codex Strongest 不会复制 Claude 登录态、token、sessions、logs 或缓存；它保留本仓库的 Claude skills / agents / commands / docs 作为 Codex 可读的规则库和工作流参考，让 Codex 在不执行 Claude 专属 hook 的前提下复用同一套工程实践。
 
+本仓库同时提供一套共享的人机协作规则：根目录 `AGENTS.md` 是跨工具正文，根目录 `CLAUDE.md` 是 Claude Code 兼容入口，`.codex/AGENTS.md` 是部署到 `~/.codex` 后仍然自洽的 Codex 全局模板。复杂任务默认先写 `PLAN.md`，把理解、目标、范围、人机分工、检查点和验证方式记录下来，再按授权执行；规则特别强调复杂多模态视觉由 AI 辅助、人类定夺，以及每个阶段用通俗语言汇报。
+
 ### 文件结构
 
 ```
@@ -295,6 +297,7 @@ rm -rf ~/.claude
 | [VoltAgent/awesome-claude-code-subagents](https://github.com/VoltAgent/awesome-claude-code-subagents) | Subagents 灵感 | MIT |
 | [affaan-m/everything-claude-code](https://github.com/affaan-m/everything-claude-code) | `block-no-verify` + linter `config-protection` hook 思路（用 PowerShell 重写） | MIT |
 | [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official) | 官方 plugin 参考 | Anthropic |
+| [FerroxLabs/agents-md](https://github.com/FerroxLabs/agents-md) | 反奉承、最小改动、验证闭环和项目学习机制（融合改写） | MIT |
 
 具体哪些文件来自哪里、做了什么改动，见 [LICENSE](LICENSE) 与各文件头部。
 
@@ -404,7 +407,7 @@ Exporting redacts every credential, drops providers pointing at intranet relays 
 
 ### License
 
-[MIT](LICENSE). Bundles third-party MIT-licensed content from `obra/superpowers`, `wshobson/agents`, `VoltAgent/awesome-claude-code-subagents`, `affaan-m/everything-claude-code`, and `anthropics/claude-plugins-official`. See [LICENSE](LICENSE) for attribution.
+[MIT](LICENSE). Bundles or adapts third-party content from `obra/superpowers`, `wshobson/agents`, `VoltAgent/awesome-claude-code-subagents`, `affaan-m/everything-claude-code`, `FerroxLabs/agents-md`, and `anthropics/claude-plugins-official`. See [LICENSE](LICENSE) for attribution.
 
 ### Contributing
 
